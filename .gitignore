@@ -1,0 +1,12 @@
+dist/*
+dist/**/*
+.DS_Store
+log/*
+config.json
+.cabal-sandbox/*
+cabal.sandbox.config
+setenv.sh
+*.aux
+*.hp
+*.prof
+*.ps
