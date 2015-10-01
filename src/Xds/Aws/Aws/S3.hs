@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
@@ -7,7 +8,8 @@ module Xds.Aws.Aws.S3 (
 
 import Control.Monad.IO.Class (liftIO, MonadIO)
 import Control.Applicative ((<$>))
-import Data.Text (unpack)
+import Data.Text (Text)
+import qualified Data.Text as T (unpack, concat)
 import qualified Aws
 import qualified Aws.Core                     as Aws
 import qualified Aws.S3                       as S3
@@ -29,19 +31,21 @@ downloadFix
   => Manager
   -> Config 
   -> URL
-  -> URL
+  -> Text
   -> Path
   -> (ByteString -> ByteString) 
-  -> m ()
+  -> m URL
 downloadFix mgr Config{awsConfig} url s3Bucket s3Path f = do
 
   let s3cfg = Aws.defServiceConfig :: S3.S3Configuration Aws.NormalQuery
 
   liftIO $ runResourceT $ do
-    request <- parseUrl $ unpack url
+    request <- parseUrl $ T.unpack url
 
     resumableSource <- responseBody <$> http request mgr
     (source, _) <- unwrapResumable resumableSource
     let initiator b o = (S3.postInitiateMultipartUpload b o){S3.imuAcl = Just S3.AclPublicRead}
     S3.multipartUploadWithInitiator awsConfig s3cfg{S3.s3Protocol = Aws.HTTPS} 
       initiator mgr s3Bucket s3Path (source $= CL.map f) (128*1024*1024)
+
+  return $ T.concat ["https://s3.amazonaws.com/", s3Bucket, "/", s3Path]
