@@ -6,8 +6,8 @@ import Control.Monad.Trans.AWS (envLogger, envManager)
 import qualified Network.AWS as AWS (Env, newLogger, LogLevel(Debug))
 import System.IO (stdout)
 import Network.HTTP.Client (Manager)
-import qualified Aws (loadCredentialsFromEnv, baseConfiguration)
-import Aws.Aws (Configuration(credentials))
+import qualified Aws (baseConfiguration, dbgConfiguration)
+import Aws.Aws (Configuration)
 
 
 data Config = Config {
@@ -22,15 +22,9 @@ config httpManager = do
   amazonkaCfg <- newEnv NorthVirginia Discover <&> envLogger .~ logger <&> envManager .~ httpManager
 
   -- Aws
-  maybeCreds <- Aws.loadCredentialsFromEnv
-  awsCfg <- maybe
-    (error "Please set the environment variables AWS_ACCESS_KEY_ID and AWS_ACCESS_KEY_SECRET")
-    (\creds -> do
-      cfg <- Aws.baseConfiguration
-      return cfg{credentials = creds}
-      {- Aws.dbgConfiguration{credentials = creds} -}
-    )
-    maybeCreds
+  {- awsCfg <- Aws.baseConfiguration -}
+  awsCfg <- Aws.dbgConfiguration
+  
 
   return Config {
       awsConfig       = awsCfg
