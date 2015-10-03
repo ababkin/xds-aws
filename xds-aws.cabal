@@ -1,5 +1,5 @@
 name:                xds-aws
-version:             0.2.1.0
+version:             0.3.0.0
 description:         AWS lib for xdataset
 license:             AllRightsReserved
 author:              Alex Babkin
